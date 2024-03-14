@@ -10,7 +10,7 @@ function Timer({ words, startingTime }) {
   const [guessedWords, setGuessedWords] = useState([]);
   const [passedWords, setPassedWords] = useState([]);
   const [errors, setErrors] = useState([]);
-
+  const [endGame, setEndGame] = useState(false);
   useEffect(() => {
     let interval = null;
     if (!isPaused) {
@@ -22,8 +22,15 @@ function Timer({ words, startingTime }) {
     } else if (time !== 0) {
       clearInterval(interval);
     }
+    if (time === 0) {
+      setEndGame(true);
+    }
     return () => clearInterval(interval);
-  }, [isPaused, time]);
+  }, [isPaused, time, words]);
+
+  useEffect(() => {
+    setTime(startingTime);
+  }, [startingTime]);
 
   const handleBuzz = () => {
     if (isPaused) {
@@ -35,14 +42,26 @@ function Timer({ words, startingTime }) {
   };
   const handlePasso = () => {
     setIsPaused(true);
-
+    if (
+      guessedWords.some((guessedWord) => guessedWord.word === word) ||
+      errors.some((error) => error.word === word) ||
+      passedWords.some((passed) => passed.word === word)
+    ) {
+      return;
+    }
     setPassedWords([...passedWords, { word: word, time: startTime - time }]);
   };
 
   const handleAddScore = () => {
     if (isPaused) {
+      if (
+        guessedWords.some((guessedWord) => guessedWord.word === word) ||
+        errors.some((error) => error.word === word) ||
+        passedWords.some((passed) => passed.word === word)
+      ) {
+        return;
+      }
       setScore(score + 1);
-
       setGuessedWords([
         ...guessedWords,
         { word: word, time: startTime - time },
@@ -51,19 +70,30 @@ function Timer({ words, startingTime }) {
   };
 
   const handleSubtractScore = () => {
-    if (isPaused && score > 0) {
-      setScore(score - 1);
+    if (isPaused) {
+      if (
+        guessedWords.some((guessedWord) => guessedWord.word === word) ||
+        errors.some((error) => error.word === word) ||
+        passedWords.some((passed) => passed.word === word)
+      ) {
+        return;
+      }
+      if (score > 0) {
+        setScore(score - 1);
+      }
       setErrors([...errors, { word: word, time: startTime - time }]);
     }
   };
 
   const handleReset = () => {
+    setIsPaused(true);
     setGuessedWords([]);
     setErrors([]);
     setPassedWords([]);
     setWord("");
     setScore(0);
     setTime(startingTime);
+    setEndGame(false);
   };
 
   return (
@@ -73,37 +103,46 @@ function Timer({ words, startingTime }) {
         style={{
           backgroundColor: time <= 5 ? "red" : "blue",
           color: "white",
-          textShadow: "2px 2px black",
+          textShadow: "2px 2px grey",
         }}
       >
         {time}
       </h1>
       <h1
-        className="subtitle is-size-1"
+        className="subtitle"
         style={{
           backgroundColor: "#31e83d",
           color: "white",
-          textShadow: "2px 2px black",
+          textShadow: "2px 2px grey",
+          fontSize: "7rem",
         }}
       >
-        {word}
+        {word.toUpperCase()}
       </h1>
       <h1
         className="subtitle is-size-1"
         style={{
           backgroundColor: "#ff9447",
           color: "white",
-          textShadow: "2px 2px black",
+          textShadow: "2px 2px grey",
         }}
       >
         {score}
       </h1>
       <div className="level-item has-text-centered mb-5">
         <div className="buttons are-centered">
-          <button className="button is-danger is-large" onClick={handleBuzz}>
+          <button
+            className="button is-danger is-large"
+            onClick={handleBuzz}
+            disabled={endGame}
+          >
             BUZZER
           </button>
-          <button className="button is-primary is-large" onClick={handlePasso}>
+          <button
+            className="button is-primary is-large"
+            onClick={handlePasso}
+            disabled={endGame}
+          >
             PASSO
           </button>
         </div>
@@ -111,17 +150,28 @@ function Timer({ words, startingTime }) {
 
       <div className="level-item has-text-centered mb-5">
         <div className="buttons are-centered">
-          <button className="button is-light" onClick={handleReset}>
+          <button
+            className={endGame ? "button is-success" : "button is-light"}
+            onClick={handleReset}
+          >
             Reset
           </button>
         </div>
       </div>
       <div className="level-item has-text-centered mb-5">
         <div className="buttons are-centered">
-          <button className="button is-success" onClick={handleAddScore}>
+          <button
+            className="button is-success"
+            onClick={handleAddScore}
+            disabled={endGame}
+          >
             +
           </button>
-          <button className="button is-danger" onClick={handleSubtractScore}>
+          <button
+            className="button is-danger"
+            onClick={handleSubtractScore}
+            disabled={endGame}
+          >
             -
           </button>
         </div>
