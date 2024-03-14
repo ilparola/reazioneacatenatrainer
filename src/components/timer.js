@@ -11,6 +11,7 @@ function Timer({ words, startingTime }) {
   const [passedWords, setPassedWords] = useState([]);
   const [errors, setErrors] = useState([]);
   const [endGame, setEndGame] = useState(false);
+  const cantPass = () => !word || word === "" || passedWords.length === 3;
   useEffect(() => {
     let interval = null;
     if (!isPaused) {
@@ -41,6 +42,9 @@ function Timer({ words, startingTime }) {
     setIsPaused(!isPaused);
   };
   const handlePasso = () => {
+    if (cantPass()) {
+      return;
+    }
     setIsPaused(true);
     if (
       guessedWords.some((guessedWord) => guessedWord.word === word) ||
@@ -141,7 +145,7 @@ function Timer({ words, startingTime }) {
           <button
             className="button is-primary is-large"
             onClick={handlePasso}
-            disabled={endGame}
+            disabled={endGame || cantPass()}
           >
             PASSO
           </button>
