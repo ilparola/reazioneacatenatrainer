@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import "bulma/css/bulma.css";
+import SummaryModal from "./summaryModal";
 
 function Timer({ words, startingTime }) {
   const [time, setTime] = useState(startingTime); // initial time in seconds
@@ -11,6 +12,8 @@ function Timer({ words, startingTime }) {
   const [passedWords, setPassedWords] = useState([]);
   const [errors, setErrors] = useState([]);
   const [endGame, setEndGame] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const cantPass = () => !word || word === "" || passedWords.length === 3;
   useEffect(() => {
     let interval = null;
@@ -28,19 +31,39 @@ function Timer({ words, startingTime }) {
     }
     return () => clearInterval(interval);
   }, [isPaused, time, words]);
-
+  useEffect(() => {
+    if (time === 0) {
+      setIsModalOpen(true);
+    }
+  }, [time]);
   useEffect(() => {
     setTime(startingTime);
   }, [startingTime]);
-
-  const handleBuzz = () => {
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+  const handleBuzz = useCallback(() => {
+    console.log("handleBuzz");
     if (isPaused) {
       const randomIndex = Math.floor(Math.random() * words.length);
       setWord(words[randomIndex]);
       setStartTime(time);
     }
     setIsPaused(!isPaused);
-  };
+  }, [isPaused, time, words]);
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.code === "Space" || event.code === "Enter") {
+        handleBuzz();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleBuzz]);
   const handlePasso = () => {
     if (cantPass()) {
       return;
@@ -181,6 +204,9 @@ function Timer({ words, startingTime }) {
         </div>
       </div>
       <div>
+        <div>
+          <b>{words.length}</b> parole in gioco
+        </div>
         <div className="level-item has-text-centered mb-5">
           <table className="table is-centered is-size-4" border="solid">
             <thead>
@@ -224,6 +250,14 @@ function Timer({ words, startingTime }) {
           </table>
         </div>
       </div>
+      <SummaryModal
+        isOpen={isModalOpen}
+        handleClose={handleCloseModal}
+        score={score}
+        guessedWords={guessedWords}
+        errorWords={errors}
+        passedWords={passedWords}
+      />
     </div>
   );
 }

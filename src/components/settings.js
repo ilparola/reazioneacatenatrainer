@@ -1,15 +1,16 @@
-import React from "react";
+import { useState } from "react";
 import { FaAngleDown } from "react-icons/fa";
 import { MdOutlineTimer } from "react-icons/md";
 
 const Settings = ({ onApply, ...props }) => {
-  const [number, setNumber] = React.useState(0);
-  const [option, setOption] = React.useState("Tutte le parole");
-  const [isDuplicate, setIsDuplicate] = React.useState(false);
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [number, setNumber] = useState(0);
+
+  const [option, setOption] = useState("all");
+  const [removeDuplicate, setRemoveDuplicate] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleApply = () => {
-    onApply({ number, option, isDuplicate });
+    onApply({ number, option, isDuplicate: removeDuplicate });
   };
 
   return (
@@ -32,7 +33,7 @@ const Settings = ({ onApply, ...props }) => {
                 value={number}
                 onChange={(e) => setNumber(e.target.value)}
               />
-              <span class="icon is-small is-right">
+              <span className="icon is-small is-right">
                 <MdOutlineTimer />
               </span>
             </div>
@@ -43,9 +44,11 @@ const Settings = ({ onApply, ...props }) => {
                   value={option}
                   onChange={(e) => setOption(e.target.value)}
                 >
-                  <option SELECTED>Tutte le parole</option>
-                  <option>Solo generate</option>
-                  <option>Solo parole Trasmissione</option>
+                  <option value="all" defaultValue>
+                    Tutte le parole
+                  </option>
+                  <option value="generated">Solo generate</option>
+                  <option value="captured">Solo parole Trasmissione</option>
                 </select>
               </div>
             </div>
@@ -53,8 +56,8 @@ const Settings = ({ onApply, ...props }) => {
               <label className="checkbox">
                 <input
                   type="checkbox"
-                  checked={isDuplicate}
-                  onChange={(e) => setIsDuplicate(e.target.checked)}
+                  checked={removeDuplicate}
+                  onChange={(e) => setRemoveDuplicate(e.target.checked)}
                 />
                 Elimina doppioni
               </label>
